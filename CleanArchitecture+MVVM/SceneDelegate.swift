@@ -19,7 +19,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = AllCountriesModuleFactory.buildViewController()
+        window?.rootViewController = ViewController() // Reemplaza ViewController con tu controlador raíz
         window?.makeKeyAndVisible()
     }
 
