@@ -8,13 +8,13 @@
 import Foundation
 import UIKit
 
-class NetworkManager {
+class NetworkManager: HTTPClient {
     static let shared = NetworkManager()
     private let urlSession = URLSession.shared
     
     private init() {}
     
-    public func perform<T: Decodable>(_ request: NetworkRequest, decodeTo type: T.Type) async throws -> T {
+    public func perform<T: Decodable>(_ request: HTTPRequest, decodeTo type: T.Type) async throws -> T {
         if #available(iOS 15.0, *) {
             let urlRequest = try request.urlRequest()
             let (data, response) = try await urlSession.data(for: urlRequest)
@@ -38,32 +38,32 @@ class NetworkManager {
         do {
             let decodedObject = try JSONDecoder().decode(T.self, from: data)
             return decodedObject
-        } catch let decodingError {
-            throw NetworkError.decodingFailed(decodingError)
+        } catch {
+            throw HTTPClientError.decodingFailed(error)
         }
     }
     
     private func processResponse(response: URLResponse?) throws {
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw NetworkError.invalidResponse
+            throw HTTPClientError.invalidResponse
         }
         
         switch httpResponse.statusCode {
         case 200...299:
             return
         case 404:
-            throw NetworkError.notFound
+            throw HTTPClientError.notFound
         case 500:
-            throw NetworkError.internalServerError
+            throw HTTPClientError.internalServerError
         default:
-            throw NetworkError.unknownError(statusCode: httpResponse.statusCode)
+            throw HTTPClientError.unknownError(statusCode: httpResponse.statusCode)
         }
     }
     
 }
 
 extension NetworkManager {
-    private func perform<T: Decodable>(_ request: NetworkRequest, decodeTo type: T.Type, completion: @escaping (Result<T, NetworkError>) -> Void) {
+    private func perform<T: Decodable>(_ request: HTTPRequest, decodeTo type: T.Type, completion: @escaping (Result<T, HTTPClientError>) -> Void) {
         do {
             let urlRequest = try request.urlRequest()
             urlSession.dataTask(with: urlRequest) { data, response, error in
@@ -82,11 +82,11 @@ extension NetworkManager {
                     let decodedObject = try self.decodeData(data: data, type: T.self)
                     completion(.success(decodedObject))
                 } catch {
-                    completion(.failure(error as? NetworkError ?? .invalidResponse))
+                    completion(.failure(error as? HTTPClientError ?? .invalidResponse))
                 }
             }.resume()
         } catch {
-            completion(.failure(error as? NetworkError ?? .invalidResponse))
+            completion(.failure(error as? HTTPClientError ?? .invalidResponse))
         }
     }
 }
