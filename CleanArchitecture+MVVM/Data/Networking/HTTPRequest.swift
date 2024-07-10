@@ -1,16 +1,43 @@
 //
-//  NetworkRequest+Extensions.swift
+//  HTTPRequest.swift
 //  CleanArchitecture+MVVM
 //
-//  Created by Rodrigo on 03/07/2024.
+//  Created by Rodrigo on 09/07/2024.
 //
 
 import Foundation
 
-extension NetworkRequest {
+protocol HTTPRequest {
+    var url: URL? { get }
+    var method: HTTPMethod { get }
+    var headers: [HTTPHeader: String]? { get }
+    var parameters: Encodable? { get }
+    
+    func urlRequest() throws -> URLRequest
+}
+
+enum HTTPMethod: String {
+    case get = "GET"
+    case post = "POST"
+    case put = "PUT"
+    case delete = "DELETE"
+}
+
+enum HTTPHeader: String {
+    case contentType = "Content-Type"
+    case authorization = "Authorization"
+}
+
+enum ContentType: String {
+    case json = "application/json"
+    case xml = "application/xml"
+    case formUrlEncoded = "application/x-www-form-urlencoded"
+}
+
+extension HTTPRequest {
     func urlRequest() throws -> URLRequest {
         guard let url = url else {
-            throw NetworkError.badURL
+            throw HTTPClientError.badUrl
         }
         
         var request = URLRequest(url: url)
@@ -34,7 +61,7 @@ extension NetworkRequest {
                     let jsonData = try JSONEncoder().encode(parameters)
                     request.httpBody = jsonData
                 } catch {
-                    throw NetworkError.encodingFailed(error)
+                    throw HTTPClientError.encodingFailed(error)
                 }
             }
         }
@@ -42,4 +69,5 @@ extension NetworkRequest {
         return request
     }
 }
+
 

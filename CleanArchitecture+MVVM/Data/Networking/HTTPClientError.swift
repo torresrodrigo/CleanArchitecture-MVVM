@@ -1,14 +1,14 @@
 //
-//  NetworkError.swift
+//  HTTPClientError.swift
 //  CleanArchitecture+MVVM
 //
-//  Created by Rodrigo on 03/07/2024.
+//  Created by Rodrigo on 09/07/2024.
 //
 
 import Foundation
 
-enum NetworkError: Error {
-    case badURL
+enum HTTPClientError: Error {
+    case badUrl
     case requestFailed(Error)
     case invalidResponse
     case dataNotFound
@@ -17,8 +17,4 @@ enum NetworkError: Error {
     case notFound
     case internalServerError
     case unknownError(statusCode: Int)
-}
-
-struct DecodingError: Error {
-    let message: String
 }
